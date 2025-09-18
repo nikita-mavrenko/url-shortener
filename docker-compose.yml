@@ -1,0 +1,37 @@
+version: '3.5'
+
+services:
+  shortener-service:
+    restart: always
+    build: shortener-service
+    ports:
+      - "44044:44044"
+      - "8080:8080"
+    depends_on:
+      - postgres
+
+  bot-service:
+    restart: always
+    build: telegram-bot-service
+    ports:
+      - 5051:5051
+    depends_on:
+      - shortener-service
+
+  postgres:
+    image: postgres:15
+    container_name: postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: shortener_db
+      POSTGRES_HOST_AUTH_METHOD: md5
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d shortener_db"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: unless-stopped
+

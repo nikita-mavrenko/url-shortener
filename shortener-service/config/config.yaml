@@ -1,0 +1,9 @@
+grpc:
+  port: 44044
+  timeout: 10h
+
+db:
+  url: "postgres://admin:123@postgres:5432/shortener_db?sslmode=disable"
+
+http:
+  address: "localhost:8080"
