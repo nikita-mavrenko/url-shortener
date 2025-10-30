@@ -30,7 +30,7 @@ func NewClient(ctx context.Context, addr string) (*Client, error) {
 	}, nil
 }
 
-func (c *Client) Short(ctx context.Context, url string) (string, error) {
+func (c *Client) GetShortenLink(ctx context.Context, url string) (string, error) {
 	const op = "grpc.ShortURL"
 
 	resp, err := c.client.ShortURL(ctx, &shortenerv1.ShortURLRequest{Url: url})

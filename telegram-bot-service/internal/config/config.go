@@ -40,5 +40,6 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("%s %w", op, err)
 	}
 	cfg.Tg.Token = viper.GetString("telegram.token")
+	cfg.ShortenerClient.Addr = viper.GetString("shortener_client.addr")
 	return cfg, nil
 }

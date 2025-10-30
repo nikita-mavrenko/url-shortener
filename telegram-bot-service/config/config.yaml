@@ -1,5 +1,5 @@
 telegram:
-  token: ""
+  token: "8366324736:AAEFQqOEk27v4EOYKT2fgobBZl02kyBVPVg"
 
 shortener_client:
   addr: "shortener-service:44044"

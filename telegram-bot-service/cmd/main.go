@@ -10,6 +10,7 @@ import (
 func main() {
 	log := zerolog.New(zerolog.ConsoleWriter{Out: os.Stdout}).With().Timestamp().Logger()
 
+	log.Info().Msg("start app")
 	cfg := config.MustLoad()
 
 	a, err := app.New(cfg, &log)

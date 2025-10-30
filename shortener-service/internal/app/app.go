@@ -61,10 +61,8 @@ func (a *App) Run() {
 		}
 	}()
 
-	// Даем серверам время на запуск
 	time.Sleep(100 * time.Millisecond)
 
-	// Проверяем, есть ли immediate errors
 	select {
 	case err := <-errChan:
 		a.log.Error().Err(err).Msg("shortener service failed")
@@ -83,8 +81,7 @@ func (a *App) Run() {
 		a.log.Error().Err(err).Msg("server failed")
 		panic(err)
 	}
-
-	// Graceful shutdown
+	
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
