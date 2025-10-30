@@ -7,3 +7,7 @@ db:
 
 http:
   address: "http://localhost:8080"
+
+redis:
+  addr: "redis:6379"
+  password: "123"

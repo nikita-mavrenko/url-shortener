@@ -2,11 +2,14 @@ package shortener
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"github.com/google/uuid"
 	"github.com/nikitamavrenko/shortener-service/internal/domain"
+	"github.com/nikitamavrenko/shortener-service/internal/storage"
 	"github.com/nikitamavrenko/shortener-service/internal/utils"
 	"github.com/rs/zerolog"
+	"github.com/rs/zerolog/log"
 	"strings"
 )
 
@@ -16,6 +19,7 @@ type ShortenerService struct {
 	baseURL     string
 	alphabet    []rune
 	alphabetLen uint32
+	redis       Redis
 }
 
 type Storage interface {
@@ -23,7 +27,12 @@ type Storage interface {
 	GetURL(ctx context.Context, id string) (*domain.URL, error)
 }
 
-func New(log *zerolog.Logger, storage Storage, baseUrl string) *ShortenerService {
+type Redis interface {
+	GetUrl(ctx context.Context, id string) (string, error)
+	PutUrl(ctx context.Context, id, url string) error
+}
+
+func New(log *zerolog.Logger, storage Storage, redis Redis, baseUrl string) *ShortenerService {
 	alphabet := utils.GenerateAlphabet(32)
 
 	return &ShortenerService{
@@ -32,6 +41,7 @@ func New(log *zerolog.Logger, storage Storage, baseUrl string) *ShortenerService
 		baseURL:     baseUrl,
 		alphabet:    alphabet,
 		alphabetLen: uint32(len(alphabet)),
+		redis:       redis,
 	}
 }
 
@@ -46,15 +56,26 @@ func (s *ShortenerService) Short(ctx context.Context, url string) (string, error
 		return "", err
 	}
 
+	if err := s.redis.PutUrl(ctx, shortenURL.Id, shortenURL.OriginalURL); err != nil {
+		log.Warn().Err(err).Msg("failed to save shorten url to redis")
+	}
+
 	return s.makeURL(shortenURL.Id), nil
 }
 
 func (s *ShortenerService) Redirect(ctx context.Context, id string) (string, error) {
-	url, err := s.storage.GetURL(ctx, id)
+	url, err := s.redis.GetUrl(ctx, id)
+	if err == nil {
+		return url, nil
+	} else if errors.Is(err, storage.ErrUrlNotFound) {
+		s.log.Info().Str("id", id).Str("url", url).Msg("url not found in redis")
+	}
+
+	shortenUrl, err := s.storage.GetURL(ctx, id)
 	if err != nil {
 		return "", err
 	}
-	return url.OriginalURL, nil
+	return shortenUrl.OriginalURL, nil
 }
 
 func (s *ShortenerService) makeIdentifier() string {

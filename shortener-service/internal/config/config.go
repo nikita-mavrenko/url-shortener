@@ -7,9 +7,10 @@ import (
 )
 
 type Config struct {
-	GRPC *gRPCConfig `yaml:"grpc"`
-	Db   *DbConfig   `yaml:"db"`
-	Http *HttpConfig `yaml:"http"`
+	GRPC  *gRPCConfig  `yaml:"grpc"`
+	Db    *DbConfig    `yaml:"db"`
+	Http  *HttpConfig  `yaml:"http"`
+	Redis *RedisConfig `yaml:"redis"`
 }
 
 type gRPCConfig struct {
@@ -23,6 +24,11 @@ type DbConfig struct {
 
 type HttpConfig struct {
 	Address string `yaml:"address"`
+}
+
+type RedisConfig struct {
+	Addr     string `yaml:"addr"`
+	Password string `yaml:"password"`
 }
 
 func MustLoad() *Config {

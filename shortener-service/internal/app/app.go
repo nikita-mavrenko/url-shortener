@@ -8,6 +8,7 @@ import (
 	"github.com/nikitamavrenko/shortener-service/internal/config"
 	"github.com/nikitamavrenko/shortener-service/internal/services/shortener"
 	"github.com/nikitamavrenko/shortener-service/internal/storage/postgres"
+	myredis "github.com/nikitamavrenko/shortener-service/internal/storage/redis"
 	"github.com/rs/zerolog"
 	"os"
 	"os/signal"
@@ -31,7 +32,13 @@ func New(log *zerolog.Logger, cfg *config.Config) *App {
 		panic(err)
 	}
 
-	shortenerService := shortener.New(log, db, cfg.Http.Address)
+	redisCtx := context.Background()
+	r, err := myredis.New(redisCtx, log, cfg)
+	if err != nil {
+		panic(err)
+	}
+
+	shortenerService := shortener.New(log, db, r, cfg.Http.Address)
 
 	gRPCApp := grpcapp.New(log, shortenerService, cfg.GRPC.Port)
 

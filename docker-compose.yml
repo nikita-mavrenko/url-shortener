@@ -1,4 +1,4 @@
-version: '3.5'
+version: '3.8'
 
 services:
   shortener-service:
@@ -19,7 +19,7 @@ services:
       - shortener-service
 
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
     container_name: postgres
     environment:
       POSTGRES_USER: admin
@@ -35,3 +35,14 @@ services:
       retries: 5
     restart: unless-stopped
 
+  redis:
+    image: redis:7-alpine
+    ports:
+     - "6379:6379"
+    environment:
+     - REDIS_PASSWORD=123
+    volumes:
+      - redis_data:/data
+
+volumes:
+  redis_data:
