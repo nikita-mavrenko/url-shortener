@@ -75,6 +75,10 @@ func (s *ShortenerService) Redirect(ctx context.Context, id string) (string, err
 	if err != nil {
 		return "", err
 	}
+	if err := s.redis.PutUrl(ctx, shortenUrl.Id, shortenUrl.OriginalURL); err != nil {
+		log.Warn().Err(err).Msg("failed to save shorten url to redis")
+	}
+
 	return shortenUrl.OriginalURL, nil
 }
 
