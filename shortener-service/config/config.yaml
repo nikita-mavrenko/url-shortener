@@ -6,4 +6,4 @@ db:
   url: "postgres://admin:123@postgres:5432/shortener_db?sslmode=disable"
 
 http:
-  address: "localhost:8080"
+  address: "http://localhost:8080"

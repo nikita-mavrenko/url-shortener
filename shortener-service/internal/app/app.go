@@ -47,14 +47,12 @@ func New(log *zerolog.Logger, cfg *config.Config) *App {
 func (a *App) Run() {
 	errChan := make(chan error, 2)
 
-	// Запуск gRPC
 	go func() {
 		if err := a.gRPCApp.Run(); err != nil {
 			errChan <- fmt.Errorf("gRPC failed: %w", err)
 		}
 	}()
 
-	// Запуск HTTP
 	go func() {
 		if err := a.httpApp.Run(); err != nil {
 			errChan <- fmt.Errorf("HTTP failed: %w", err)
@@ -81,7 +79,7 @@ func (a *App) Run() {
 		a.log.Error().Err(err).Msg("server failed")
 		panic(err)
 	}
-	
+
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
