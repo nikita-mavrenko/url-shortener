@@ -20,7 +20,7 @@ type ShortenerService struct {
 
 type Storage interface {
 	SaveURL(ctx context.Context, url *domain.URL) error
-	GetURL(ctx context.Context, shortenedURL *domain.URL) (*domain.URL, error)
+	GetURL(ctx context.Context, id string) (*domain.URL, error)
 }
 
 func New(log *zerolog.Logger, storage Storage, baseUrl string) *ShortenerService {
@@ -37,8 +37,8 @@ func New(log *zerolog.Logger, storage Storage, baseUrl string) *ShortenerService
 
 func (s *ShortenerService) Short(ctx context.Context, url string) (string, error) {
 	shortenURL := &domain.URL{
-		Original:  url,
-		Shortened: s.makeURL(s.makeIdentifier()),
+		Id:          s.makeIdentifier(),
+		OriginalURL: url,
 	}
 
 	err := s.storage.SaveURL(ctx, shortenURL)
@@ -46,17 +46,15 @@ func (s *ShortenerService) Short(ctx context.Context, url string) (string, error
 		return "", err
 	}
 
-	return shortenURL.Shortened, nil
+	return s.makeURL(shortenURL.Id), nil
 }
 
-func (s *ShortenerService) Redirect(ctx context.Context, urlId string) (string, error) {
-	url, err := s.storage.GetURL(ctx, &domain.URL{
-		Shortened: s.makeURL(urlId),
-	})
+func (s *ShortenerService) Redirect(ctx context.Context, id string) (string, error) {
+	url, err := s.storage.GetURL(ctx, id)
 	if err != nil {
 		return "", err
 	}
-	return url.Original, nil
+	return url.OriginalURL, nil
 }
 
 func (s *ShortenerService) makeIdentifier() string {

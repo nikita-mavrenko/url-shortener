@@ -8,9 +8,12 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/pgx"
 	_ "github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/jackc/pgerrcode"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/jackc/pgx/v5/stdlib"
 	"github.com/nikitamavrenko/shortener-service/internal/domain"
+	"github.com/nikitamavrenko/shortener-service/internal/storage"
 	"github.com/rs/zerolog"
 	"github.com/rs/zerolog/log"
 	"path/filepath"
@@ -34,23 +37,33 @@ func New(ctx context.Context, dbUrl string, log *zerolog.Logger) (*Storage, erro
 }
 
 func (s *Storage) SaveURL(ctx context.Context, url *domain.URL) error {
-	const op = "storage.postgres.New"
+	const op = "storage.postgres.SaveURL"
 
-	query := "INSERT INTO urls (shortened, original_url) VALUES ($1, $2)"
-	_, err := s.pool.Exec(ctx, query, url.Shortened, url.Original)
+	query := "INSERT INTO urls (id, original_url) VALUES ($1, $2)"
+	_, err := s.pool.Exec(ctx, query, url.Id, url.OriginalURL)
 	if err != nil {
+		if pgErr, ok := err.(*pgconn.PgError); ok {
+			if pgErr.Code == pgerrcode.UniqueViolation {
+				return fmt.Errorf("%s: %w", op, storage.ErrUrlAlreadyExists)
+			}
+		}
 		return fmt.Errorf("%s: %w", op, err)
 	}
 	return nil
 }
 
-func (s *Storage) GetURL(ctx context.Context, shortenedURL *domain.URL) (*domain.URL, error) {
-	const op = "storage.postgres.SaveURL"
+func (s *Storage) GetURL(ctx context.Context, id string) (*domain.URL, error) {
+	const op = "storage.postgres.GetURL"
 
-	query := "SELECT shortened, original_url FROM urls WHERE shortened = $1"
+	query := "SELECT id, original_url FROM urls WHERE id = $1"
 	url := domain.URL{}
-	err := s.pool.QueryRow(ctx, query, shortenedURL.Shortened).Scan(&url.Shortened, &url.Original)
+	err := s.pool.QueryRow(ctx, query, id).Scan(&url.Id, &url.OriginalURL)
 	if err != nil {
+		if pgErr, ok := err.(*pgconn.PgError); ok {
+			if pgErr.Code == pgerrcode.NoData {
+				return nil, fmt.Errorf("%s: %w", op, storage.ErrUrlNotFound)
+			}
+		}
 		return nil, fmt.Errorf("%s: %w", op, err)
 	}
 	return &url, nil

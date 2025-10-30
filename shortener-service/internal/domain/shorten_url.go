@@ -1,6 +1,6 @@
 package domain
 
 type URL struct {
-	Original  string
-	Shortened string
+	Id          string
+	OriginalURL string
 }

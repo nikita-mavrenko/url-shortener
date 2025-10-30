@@ -1,7 +1,6 @@
 CREATE TABLE IF NOT EXISTS urls (
-    url_id SERIAL PRIMARY KEY,
-    shortened VARCHAR(255) UNIQUE NOT NULL,
-    original_url VARCHAR(255) NOT NULL
+    id VARCHAR(50) PRIMARY KEY,
+    original_url TEXT NOT NULL
     );
 
-CREATE INDEX ix_urls_shortened ON urls (shortened);
+CREATE INDEX ix_urls_id_hash ON urls USING HASH (id);

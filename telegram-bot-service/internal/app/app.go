@@ -24,7 +24,7 @@ func New(cfg *config.Config, log *zerolog.Logger) (*App, error) {
 		Str("addr", cfg.ShortenerClient.Addr).
 		Msg("shortener client initialized")
 
-	tgbot, err := telegram.NewBot(cfg.Tg.Token, shortenerClient)
+	tgbot, err := telegram.NewBot(log, cfg.Tg.Token, shortenerClient)
 	if err != nil {
 		return nil, err
 	}
