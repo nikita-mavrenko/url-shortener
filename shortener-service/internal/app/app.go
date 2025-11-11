@@ -66,6 +66,10 @@ func (a *App) Run() {
 		}
 	}()
 
+	go func() {
+		metrics.Li
+	}()
+
 	time.Sleep(100 * time.Millisecond)
 
 	select {

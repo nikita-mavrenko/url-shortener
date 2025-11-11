@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/nikitamavrenko/shortener-service/internal/config"
 	"github.com/nikitamavrenko/shortener-service/internal/http-routes/redirect"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"github.com/rs/zerolog"
 	"net/http"
 )
@@ -18,6 +19,8 @@ func New(cfg *config.Config, log *zerolog.Logger, redirector redirect.Redirector
 	router := mux.NewRouter()
 
 	router.HandleFunc("/{id}", redirect.New(log, redirector)).Methods(http.MethodGet)
+
+	router.Handle("/metrics", promhttp.Handler()).Methods(http.MethodGet)
 
 	server := &http.Server{
 		Handler: router,
